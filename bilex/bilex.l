@@ -1,5 +1,6 @@
 /* options */
 %option noyywrap
+%option nodefault
 
 %{
 #include <stdio.h>
