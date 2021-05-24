@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+
+# flex and bison
+*.lex.yy.*
+*.output
+*.tab.*
