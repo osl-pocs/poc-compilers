@@ -15,6 +15,7 @@ void yyerror(const std::string s);
     int integer_;
     float float_;
     Boolean boolean_;
+    char* string_;
 }
 
 /* declare tokens */
@@ -22,8 +23,10 @@ void yyerror(const std::string s);
 /* datatypes */
 
 %token NUMBER
+%token STRING
 %token WHITESPACE
 %token ANY
+%token ERROR
 
 /* Declare types for the grammar's non-terminals. */
 %type <string> expr
@@ -33,7 +36,6 @@ void yyerror(const std::string s);
 expr: NUMBER expr {}
     | NUMBER {}
     | WHITESPACE {}
-    | ANY {}
 ;
 
 %%

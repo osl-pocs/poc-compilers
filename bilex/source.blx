@@ -1,6 +1,15 @@
 # this is a comment
 
-3 + 3.2;
-5.0 / 1.9;
-6 * 2;
-(1+1)*[(1*2) / (1+2)]
+/*
+    MY MULTILINE COMMENT
+*/
+
+3
+5
+6
+
+"MY STRING"
+
+"THIS IS MY STRING 2"
+
+"THIS IS MY STRING 3"

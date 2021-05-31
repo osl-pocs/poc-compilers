@@ -11,6 +11,7 @@ FLEX=flex ${FLEX_FLAGS}
 BISON_FLAGS=-d --verbose --file-prefix bilex --debug
 BISON=bison ${BISON_FLAGS}
 
+
 .PHONY: clean-parser
 clean-parser:
 	rm -f bilex.tab.*
@@ -26,6 +27,7 @@ clean-lexer:
 clean-build:
 	rm -f bilex
 
+
 .PHONY: clean-all
 clean-all: clean-parser clean-lexer clean-build
 
@@ -39,6 +41,7 @@ build-lexer: clean-lexer
 build-parser: clean-parser
 	${BISON} bilex.y
 
+
 .PHONY: compile-parser
 compile-parser: clean-all build-parser build-lexer
 	$(COMPILER) ${CFLAGS} ${CINCLUDE} bilex.tab.c -lfl -o bilex
@@ -47,6 +50,7 @@ compile-parser: clean-all build-parser build-lexer
 .PHONY: compile-lexer
 compile-lexer: clean-all build-parser build-lexer
 	$(COMPILER) ${CFLAGS} ${CINCLUDE} bilex.lex.yy.c -lfl -o bilex
+
 
 .PHONY: compile-all
 compile-all: clean-all build-parser build-lexer
