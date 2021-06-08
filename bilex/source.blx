@@ -4,9 +4,14 @@
     MY MULTILINE COMMENT
 */
 
-3
+3 + 4 - 1
+
+
+5.2 + 2
+
+
+6 - 1.2
 5
-6
 
 "MY STRING"
 

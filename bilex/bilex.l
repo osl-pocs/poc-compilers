@@ -15,7 +15,8 @@ char string_buf[MAX_STR_CONST];
 char *string_buf_ptr;
 
 int comment_counter = 0;
-int lineno = 0;
+int lineno = 1;
+int colnum = 0;
 
 
 %}
@@ -25,11 +26,15 @@ COMMENT_OPEN            "/*"
 COMMENT_CLOSE           "*/"
 
 DIGIT                   [0-9]
-NUMBER                  {DIGIT}+
+INTEGER                 {DIGIT}+
+FLOAT                   {DIGIT}+\.{DIGIT}+
 CHAR                    .
 ANY                     .
 
-WHITESPACE              [ \t\n\r]
+TRUE                    "true"
+FALSE                   "false"
+
+WHITESPACE              [ \t\r]
 QUOTE                   \"
 NEWLINE                 \n
 
@@ -41,12 +46,14 @@ NEWLINE                 \n
  /* COMMENTS */
 <INITIAL,COMMENT>{NEWLINE} {
     lineno++;
+    colnum = 0;
 }
 <INITIAL,COMMENT>{COMMENT_OPEN}	{
     comment_counter++;
     BEGIN(COMMENT);
 }
 <INITIAL>{COMMENT_CLOSE} {
+    yylval.error_message = "Closed comment found but no open comment found.";
     return ERROR;
 }
 <COMMENT>{COMMENT_CLOSE} {
@@ -59,6 +66,8 @@ NEWLINE                 \n
 <COMMENT>{CHAR} ;
 <COMMENT><<EOF>> {
     BEGIN(INITIAL);
+
+    yylval.error_message = "EOF found but the comment was not closed.";
     return ERROR;
 }
 
@@ -71,61 +80,79 @@ NEWLINE                 \n
 <INITIAL>{QUOTE} {
     string_buf[0] = '\0';
     string_buf_ptr = string_buf;
+    colnum++;
     BEGIN(STRING);
 }
 <STRING>{QUOTE} {
     yylval.string_ = string_buf;
-    printf("STRING: %s\n", yylval.string_);
-
+    colnum++;
     BEGIN(INITIAL);
     return STRING;
 }
 <STRING>{CHAR} {
-    printf("CHAR: %s\n", yytext);
     *string_buf_ptr = yytext[0];
     string_buf_ptr++;
+    colnum++;
+}
+<STRING>{NEWLINE} {
+    BEGIN(INITIAL);
+    lineno++;
+    colnum = 0;
+
+    yylval.error_message = "A newline was found but the string was not closed.";
+    return ERROR;
 }
 <STRING><<EOF>> {
     BEGIN(INITIAL);
+    yylval.error_message = "A <EOF> was found but the string was not closed.";
     return ERROR;
 }
 
-{NUMBER} {
-    printf("NUMBER: %s\n", yytext);
+{INTEGER} {
     yylval.integer_ = atoi(yytext);
-    return NUMBER;
+    colnum += yyleng;
+    return INTEGER;
 }
 
-{WHITESPACE} ; /* ignore whitespace */
+{FLOAT} {
+    yylval.float_ = atof(yytext);
+    colnum += yyleng;
+    return FLOAT;
+}
+
+{TRUE} {
+    yylval.boolean_ = 1;
+    colnum += yyleng;
+    return BOOLEAN;
+}
+
+{FALSE} {
+    yylval.boolean_ = 0;
+    colnum += yyleng;
+    return BOOLEAN;
+}
+
+"+" |
+"-" |
+"*" |
+"/" {
+    colnum++;
+    return yytext[0];
+}
+
+{WHITESPACE} {
+    colnum += yyleng;
+}
+
+{NEWLINE} {
+    lineno++;
+    colnum=0;
+    return EOL;
+}
+
 {ANY} {
-    printf("ANY: %s\n", yytext);
+    colnum++;
     return ANY;
 }
 
 %%
-
-
-int main(int argc, char **argv) {
-    int i;
-
-    /* just read stdin */
-    if(argc < 2) {
-        while (yylex() != 0);
-        return 0;
-    }
-
-    for(i = 1; i < argc; i++) {
-        FILE *f = fopen(argv[i], "r");
-
-        if(!f) {
-            perror(argv[i]);
-            return (1);
-        }
-
-        yyrestart(f);
-        while (yylex() != 0) ;
-        fclose(f);
-    }
-
-    return 0;
-}

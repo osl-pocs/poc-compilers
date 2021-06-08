@@ -36,3 +36,6 @@
 *.lex.yy.*
 *.output
 *.tab.*
+
+# VSCODE
+.vscode
