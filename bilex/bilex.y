@@ -34,11 +34,10 @@ void yyerror(const std::string s);
 
 /* datatypes */
 
-%token <integer_> INTEGER
-%token <float_> FLOAT
-%token <string_> STRING
-%token <boolean_> BOOLEAN
-%token ANY
+%token <integer_> LITERAL_INTEGER
+%token <float_> LITERAL_FLOAT
+%token <string_> LITERAL_STRING
+%token <boolean_> LITERAL_BOOLEAN
 %token ERROR
 %token EOL
 
@@ -61,10 +60,10 @@ expr: expr '+' expr { $$ = newast(NodeType::kOPADD, $1, $3); }
     | expr '*' expr { $$ = newast(NodeType::kOPMUL, $1, $3); }
     | expr '/' expr { $$ = newast(NodeType::kOPDIV, $1, $3); }
     | '(' expr ')' { $$ = $2; }
-    | INTEGER { $$ = newint($1); }
-    | FLOAT { $$ = newfloat($1); }
-    | BOOLEAN { $$ = newboolean($1); }
-    | STRING { printf("%s", (char*)" new string "); $$ = newstring((char*)" new string "); }
+    | LITERAL_INTEGER { $$ = newint($1); }
+    | LITERAL_FLOAT { $$ = newfloat($1); }
+    | LITERAL_BOOLEAN { $$ = newboolean($1); }
+    | LITERAL_STRING { $$ = newstring($1); }
     | expr EOL {$$ = $1; }
 ;
 

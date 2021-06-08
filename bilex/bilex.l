@@ -38,6 +38,8 @@ WHITESPACE              [ \t\r]
 QUOTE                   \"
 NEWLINE                 \n
 
+ERROR                   .
+
 %x COMMENT
 %x STRING
 
@@ -67,7 +69,7 @@ NEWLINE                 \n
 <COMMENT><<EOF>> {
     BEGIN(INITIAL);
 
-    yylval.error_message = "EOF found but the comment was not closed.";
+    yylval.error_message = (char*) "EOF found but the comment was not closed.";
     return ERROR;
 }
 
@@ -87,7 +89,7 @@ NEWLINE                 \n
     yylval.string_ = string_buf;
     colnum++;
     BEGIN(INITIAL);
-    return STRING;
+    return LITERAL_STRING;
 }
 <STRING>{CHAR} {
     *string_buf_ptr = yytext[0];
@@ -99,37 +101,37 @@ NEWLINE                 \n
     lineno++;
     colnum = 0;
 
-    yylval.error_message = "A newline was found but the string was not closed.";
+    yylval.error_message = (char*) "A newline was found but the string was not closed.";
     return ERROR;
 }
 <STRING><<EOF>> {
     BEGIN(INITIAL);
-    yylval.error_message = "A <EOF> was found but the string was not closed.";
+    yylval.error_message = (char*) "A <EOF> was found but the string was not closed.";
     return ERROR;
 }
 
 {INTEGER} {
     yylval.integer_ = atoi(yytext);
     colnum += yyleng;
-    return INTEGER;
+    return LITERAL_INTEGER;
 }
 
 {FLOAT} {
     yylval.float_ = atof(yytext);
     colnum += yyleng;
-    return FLOAT;
+    return LITERAL_FLOAT;
 }
 
 {TRUE} {
     yylval.boolean_ = 1;
     colnum += yyleng;
-    return BOOLEAN;
+    return LITERAL_BOOLEAN;
 }
 
 {FALSE} {
     yylval.boolean_ = 0;
     colnum += yyleng;
-    return BOOLEAN;
+    return LITERAL_BOOLEAN;
 }
 
 "+" |
@@ -150,9 +152,10 @@ NEWLINE                 \n
     return EOL;
 }
 
-{ANY} {
+{ERROR} {
     colnum++;
-    return ANY;
+    yylval.error_message = (char*) "It was not possible to create a token.";
+    return ERROR;
 }
 
 %%

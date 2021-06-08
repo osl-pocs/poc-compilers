@@ -17,16 +17,14 @@ std::string token_to_string(int tok)
         return "EOF";
     case EOL:
         return "EOF";
-    case INTEGER:
+    case LITERAL_INTEGER:
         return "INTEGER";
-    case FLOAT:
+    case LITERAL_FLOAT:
         return "FLOAT";
-    case STRING:
+    case LITERAL_STRING:
         return "STRING";
-    case BOOLEAN:
+    case LITERAL_BOOLEAN:
         return "BOOLEAN";
-    case ANY:
-        return "ANY";
     case ERROR:
         return "ERROR";
     case '+':
@@ -38,7 +36,7 @@ std::string token_to_string(int tok)
     case '/':
         return "'/'";
     default:
-        return("<Invalid Token>");
+        return "<Invalid Token:>";
     }
 }
 
@@ -49,20 +47,22 @@ void print_token(int tok)
     std::cerr << token_to_string(tok);
 
     switch (tok) {
-    case STRING:
+    case LITERAL_STRING:
         std::cerr << " = " << " \""  << yylval.string_ << "\"";
         break;
-    case INTEGER:
+    case LITERAL_INTEGER:
         std::cerr << " = " << yylval.integer_;
         break;
-    case FLOAT:
+    case LITERAL_FLOAT:
         std::cerr << " = " << yylval.float_;
         break;
-    case BOOLEAN:
+    case LITERAL_BOOLEAN:
         std::cerr << (yylval.boolean_ ? " = true" : " = false");
         break;
     case ERROR:
         std::cerr << " = " << yylval.error_message;
         break;
+    default:
+         std::cerr << '(' << tok << ')';
     }
 }
