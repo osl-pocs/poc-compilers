@@ -6,6 +6,8 @@
 
 
 enum class NodeType {
+    kEOL = 0,
+    kNODE = 1,
     kINTEGER,
     kFLOAT,
     kBOOLEAN,
@@ -37,6 +39,7 @@ struct AST {
     struct AST* r;
 };
 
+// DATA NODES
 
 struct LiteralInteger {
     NodeType nodetype;
@@ -58,6 +61,16 @@ struct LiteralString {
     char* value;
 };
 
+// Structures
+
+struct IfStmt {
+    NodeType nodetype;
+    struct AST* condition;
+    struct AST* body;
+};
+
+
+// Create new Nodes
 
 struct AST* newast(NodeType nodetype, struct AST* l, struct AST* r);
 
@@ -69,8 +82,14 @@ struct AST* newboolean(Boolean value);
 
 struct AST* newstring(char* value);
 
+struct AST* finishast(NodeType nodetype);
+
+struct AST* newif(struct AST* condition, struct AST* body);
+
 void treefree(struct AST* ast);
 
 void printAST(struct AST* ast);
+
+char* nodetype_to_string(AST* ast);
 
 #endif

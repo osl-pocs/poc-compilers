@@ -2,14 +2,19 @@
 
 #include "bilex.h"
 #include "ast.h"
+#include "utils.h"
 
-void yyerror(const char*) {
 
+int node_count = 1;
+
+
+void yyerror(const char* text) {
+    printf("[EE] %s", text);
 }
 
 
 struct AST* newast(NodeType nodetype, struct AST* l, struct AST* r) {
-    struct AST* ast = (struct AST*)malloc(sizeof(struct AST));
+    struct AST* ast = (struct AST*) malloc(sizeof(struct AST));
 
     if (!ast) {
         yyerror("Out of space");
@@ -21,6 +26,20 @@ struct AST* newast(NodeType nodetype, struct AST* l, struct AST* r) {
     ast->r = r;
     return ast;
 }
+
+struct AST* finishast(NodeType nodetype) {
+    struct AST* ast = (struct AST*) malloc(sizeof(struct AST));
+
+    if (!ast) {
+        yyerror("Out of space");
+        exit(0);
+    }
+
+    ast->nodetype = nodetype;
+    return ast;
+}
+
+// DATA AST
 
 struct AST* newint(int value) {
     struct LiteralInteger* ast = (struct LiteralInteger*) malloc(sizeof(struct LiteralInteger));
@@ -78,10 +97,36 @@ struct AST* newstring(char* value) {
     return (struct AST*) ast;
 }
 
-/* free a tree of ASTs */
+// STRUCT AST
+
+struct AST* newif(struct AST* condition, struct AST* body) {
+    struct IfStmt* ast = (struct IfStmt*) malloc(sizeof(struct IfStmt));
+
+    if (!ast) {
+        yyerror("Out of space");
+        exit(0);
+    }
+
+    ast->nodetype = NodeType::kIF;
+    ast->condition = condition;
+    ast->body = body;
+
+    return (struct AST*) ast;
+}
+
+// free a tree of ASTs
+
 void treefree(struct AST* ast) {
+    if (ast == NULL) {
+        return;
+    }
+
     switch(ast->nodetype) {
+    // terminal
+    case NodeType::kEOL:
+        break;
     // two subtrees
+    case NodeType::kNODE:
     case NodeType::kOPADD:
     case NodeType::kOPSUB:
     case NodeType::kOPMUL:
@@ -89,6 +134,7 @@ void treefree(struct AST* ast) {
         treefree(ast->r);
     // one subtree
         treefree(ast->l);
+        break;
     // no subtree
     case NodeType::kINTEGER:
     case NodeType::kFLOAT:
@@ -100,6 +146,9 @@ void treefree(struct AST* ast) {
         break;
     /* up to three subtrees */
     case NodeType::kIF:
+        treefree(((struct IfStmt*) ast)->condition);
+        treefree(((struct IfStmt*) ast)->body);
+        break;
     case NodeType::kWHILE:
     case NodeType::kFOR:
         // not available yet
@@ -112,56 +161,117 @@ void treefree(struct AST* ast) {
     free(ast);
 }
 
-void printAST(struct AST* ast) {
-
-    if(!ast) {
-        yyerror("internal error, null eval");
-        return;
-    }
+char* nodetype_to_string(AST* ast) {
     switch(ast->nodetype) {
+    case NodeType::kEOL:
+        return "EOL";
+    case NodeType::kNODE:
+        return "NODE";
     // constant
     case NodeType::kINTEGER:
-        printf("INTEGER(%i)", ((struct LiteralInteger*) ast)->value);
+        return "INTEGER";
+    case NodeType::kFLOAT:
+        return "FLOAT";
+    case NodeType::kBOOLEAN:
+        return "BOOLEAN";
+    case NodeType::kSTRING:
+        return "STRING";
+    case NodeType::kOPADD:
+        return "+";
+    case NodeType::kOPSUB:
+        return "-";
+    case NodeType::kOPMUL:
+        return "*";
+    case NodeType::kOPDIV:
+        return "/";
+    case NodeType::kIF:
+        return "IF";
+    default:
+        return "INVALID_NODE_TYPE";
+    }
+}
+
+void printAST(struct AST* ast) {
+    if(!ast) {
+        printf("NULL");
+        return;
+    }
+
+    printf("\n%0*c", node_count, ' ');
+    printf("%s", nodetype_to_string(ast));
+
+    switch(ast->nodetype) {
+    case NodeType::kEOL:
+        return;
+    case NodeType::kNODE:
+        node_count++;
+        printf(": (");
+        if (ast->l) {
+            printAST(ast->l);
+        } else {
+            printf("L node empty");
+        }
+
+        printf("\n%0*c,", node_count, ' ');
+
+        if (ast->r) {
+            printAST(ast->r);
+        } else {
+            printf("R node empty");
+        }
+        node_count--;
+        printf("\n%0*c)", node_count, ' ');
+        break;
+    // constant
+    case NodeType::kINTEGER:
+        printf(
+            "(%i)",
+            ((struct LiteralInteger*) ast)->value
+        );
         break;
     case NodeType::kFLOAT:
-        printf("FLOAT(%f)", ((struct LiteralFloat*) ast)->value);
+        printf(
+            "(%f)",
+            ((struct LiteralFloat*) ast)->value
+        );
         break;
     case NodeType::kBOOLEAN:
-        printf("BOOLEAN(%i)", ((struct LiteralBoolean*) ast)->value);
+        printf(
+            "(%i)",
+            ((struct LiteralBoolean*) ast)->value
+        );
         break;
     case NodeType::kSTRING:
-        printf("STRING(%s)", ((struct LiteralString*) ast)->value);
+        printf(
+            "(%s)",
+            ((struct LiteralString*) ast)->value
+        );
         break;
     // name reference: not implemented yet
     // assignment: not implemented yet
     /* expressions */
     case NodeType::kOPADD:
-        printf("(+, ");
-        printAST(ast->l);
-        printf(", ");
-        printAST(ast->r);
-        printf(")");
-        break;
     case NodeType::kOPSUB:
-        printf("(-, ");
-        printAST(ast->l);
-        printf(", ");
-        printAST(ast->r);
-        printf(")");
-        break;
     case NodeType::kOPMUL:
-        printf("(*, ");
-        printAST(ast->l);
-        printf(", ");
-        printAST(ast->r);
-        printf(")");
-        break;
     case NodeType::kOPDIV:
-        printf("(/, ");
+        printf(": (");
+        node_count++;
         printAST(ast->l);
-        printf(", ");
+        printf("\n%0*c,", node_count, ' ');
         printAST(ast->r);
-        printf(")");
+        node_count--;
+        printf("\n%0*c)", node_count, ' ');
+        break;
+    case NodeType::kIF:
+        printf("(");
+        node_count++;
+        printAST(((struct IfStmt*) ast)->condition);
+        node_count--;
+        printf("\n%0*c) {", node_count, ' ');
+        node_count++;
+        printAST(((struct IfStmt*) ast)->body);
+        node_count--;
+        printf("\n%0*c}", node_count, ' ');
         break;
     // comparisons: not implemented yet
     // control flow: not implemented yet

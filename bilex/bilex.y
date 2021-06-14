@@ -27,6 +27,7 @@ void yyerror(const std::string s);
     char* string_;
     struct AST* ast_;
     struct Literal* literal_;
+    struct IfStmt* if_;
     char* error_message;
 }
 
@@ -38,33 +39,63 @@ void yyerror(const std::string s);
 %token <float_> LITERAL_FLOAT
 %token <string_> LITERAL_STRING
 %token <boolean_> LITERAL_BOOLEAN
+
+%token UNDEFINED NIL
+
+%token IN IS
+
+/* FLOW */
+%token IF ELSE ELSEIF CASE WHEN SWITCH
+%token WHILE FOR
+
 %token ERROR
 %token EOL
 
 /* Declare types for the grammar's non-terminals. */
-%type <ast_> expr stmt
+%type <ast_> program stmt_list stmt expr_list expr literal
 
 %left '+' '-'
 %left '*' '/'
 
-%start stmt
+%start program
 
 %%
 
-stmt: expr { printAST($1); treefree($1); printf("\n"); }
-    | stmt expr { printAST($2); treefree($2); printf("\n"); }
+program: stmt_list
+    {
+        if ($1) {
+            printAST($1);
+            treefree($1);
+            printf("\n");
+        }
+    }
 ;
+
+stmt_list: stmt { $$ = $1; }
+    | stmt_list stmt { $$ = newast(NodeType::kNODE, $1, $2); }
+;
+
+stmt: expr_list { $$ = $1; }
+    | stmt expr { $$ = newast(NodeType::kNODE, $1, $2); }
+;
+
+expr_list: expr { $$ = $1; }
+    | expr_list expr { $$ = newast(NodeType::kNODE, $1, $2); }
 
 expr: expr '+' expr { $$ = newast(NodeType::kOPADD, $1, $3); }
     | expr '-' expr { $$ = newast(NodeType::kOPSUB, $1, $3); }
     | expr '*' expr { $$ = newast(NodeType::kOPMUL, $1, $3); }
     | expr '/' expr { $$ = newast(NodeType::kOPDIV, $1, $3); }
     | '(' expr ')' { $$ = $2; }
-    | LITERAL_INTEGER { $$ = newint($1); }
+    | literal { $$ = $1; }
+    | EOL { $$ = finishast(NodeType::kEOL); }
+    | IF '(' expr_list ')' '{' expr_list '}' { $$ = newif($3, $6); }
+;
+
+literal: LITERAL_INTEGER { $$ = newint($1); }
     | LITERAL_FLOAT { $$ = newfloat($1); }
     | LITERAL_BOOLEAN { $$ = newboolean($1); }
     | LITERAL_STRING { $$ = newstring($1); }
-    | expr EOL {$$ = $1; }
 ;
 
 

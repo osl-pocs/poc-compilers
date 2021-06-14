@@ -17,7 +17,7 @@ char *string_buf_ptr;
 int comment_counter = 0;
 int lineno = 1;
 int colnum = 0;
-
+int indentation = 0;
 
 %}
 
@@ -33,11 +33,25 @@ ANY                     .
 
 TRUE                    "true"
 FALSE                   "false"
+UNDEFINED               "undefined"
+NIL                     "null"
 
-WHITESPACE              [ \t\r]
+IF                      "if"
+ELSE                    "else"
+ELSEIF                  {ELSE}({WHITESPACE}|{NEWLINE})+{IF}
+CASE                    "case"
+WHEN                    "when"
+
+WHILE                   "while"
+FOR                     "for"
+
+IN                      "in"
+IS                      "is"
+
+WHITESPACE              [ \t]
 QUOTE                   \"
 NEWLINE                 \n
-
+INDENTATION             ^"  "
 ERROR                   .
 
 %x COMMENT
@@ -46,8 +60,15 @@ ERROR                   .
 %%
 
  /* COMMENTS */
-<INITIAL,COMMENT>{NEWLINE} {
+<INITIAL>{NEWLINE} {
     lineno++;
+    colnum = 0;
+    indentation = 0;
+    return EOL;
+}
+<COMMENT>{NEWLINE} {
+    lineno++;
+    indentation = 0;
     colnum = 0;
 }
 <INITIAL,COMMENT>{COMMENT_OPEN}	{
@@ -55,7 +76,7 @@ ERROR                   .
     BEGIN(COMMENT);
 }
 <INITIAL>{COMMENT_CLOSE} {
-    yylval.error_message = "Closed comment found but no open comment found.";
+    yylval.error_message = (char*) "Closed comment found but no open comment found.";
     return ERROR;
 }
 <COMMENT>{COMMENT_CLOSE} {
@@ -86,7 +107,11 @@ ERROR                   .
     BEGIN(STRING);
 }
 <STRING>{QUOTE} {
-    yylval.string_ = string_buf;
+    *string_buf_ptr = '\0';
+    int len = string_buf_ptr - string_buf;
+    yylval.string_ = new char[len+1];
+    strncpy(yylval.string_, string_buf, len);
+    yylval.string_[len] = '\0';
     colnum++;
     BEGIN(INITIAL);
     return LITERAL_STRING;
@@ -134,6 +159,51 @@ ERROR                   .
     return LITERAL_BOOLEAN;
 }
 
+{NIL} {
+    colnum += yyleng;
+    return NIL;
+}
+
+{UNDEFINED} {
+    colnum += yyleng;
+    return UNDEFINED;
+}
+
+{IS} {
+    colnum += yyleng;
+    return IS;
+}
+
+{IN} {
+    colnum += yyleng;
+    return IN;
+}
+
+{IF} {
+    colnum += yyleng;
+    return IF;
+}
+
+{ELSE} {
+    colnum += yyleng;
+    return ELSE;
+}
+
+{ELSEIF} {
+    /* TODO: check for newlines between ELSE and IF */
+    colnum += yyleng;
+    return ELSEIF;
+}
+
+ /* symbols */
+"{" |
+"}" |
+"[" |
+"]" |
+"(" |
+")" |
+"<" |
+">" |
 "+" |
 "-" |
 "*" |
@@ -142,14 +212,12 @@ ERROR                   .
     return yytext[0];
 }
 
-{WHITESPACE} {
-    colnum += yyleng;
+{INDENTATION} {
+    indentation++;
 }
 
-{NEWLINE} {
-    lineno++;
-    colnum=0;
-    return EOL;
+{WHITESPACE} {
+    colnum += yyleng;
 }
 
 {ERROR} {

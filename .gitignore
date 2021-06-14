@@ -39,3 +39,5 @@
 
 # VSCODE
 .vscode
+
+.bash_history
