@@ -6,7 +6,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    hostname: bilex-bison
+    hostname: bilex
     privileged: true
     environment:
       - DISPLAY=${DISPLAY}
