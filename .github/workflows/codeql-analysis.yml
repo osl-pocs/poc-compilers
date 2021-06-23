@@ -53,13 +53,11 @@ jobs:
 
     - name: prepare environment
       run: |
-        apt-get -qq install --yes \
+        sudo apt-get -qq install --yes \
           software-properties-common \
           build-essential \
           make \
           cmake \
-          libgoogle-glog-dev \
-          libgoogle-glog0v5 \
           gdb \
           bsdmainutils \
           flex \
