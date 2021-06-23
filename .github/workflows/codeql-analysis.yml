@@ -76,9 +76,8 @@ jobs:
     #    uses a compiled language
 
     - name: build
+      working-directory: ./bilex
       run: |
-        ls
-        cd bilex
         make compile-all
 
     - name: Perform CodeQL Analysis
