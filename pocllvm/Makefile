@@ -16,7 +16,7 @@ compile-all: clean-build
 
 .PHONY: run-test
 run-test:
-	./bilex source.blx
+	./pocllvm source.blx
 
 
 .PHONY: all
