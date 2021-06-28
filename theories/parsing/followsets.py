@@ -159,10 +159,7 @@ class FollowSet:
                         continue
 
                     if token in epsilons:
-                        result.extend(derivations[token])
-                        for s in subsets[token]:
-                            result.extend(derivations[s])
-
+                        result.extend(list(self.compute(k)))
 
                     result.extend(self.firstset.compute(token))
 
