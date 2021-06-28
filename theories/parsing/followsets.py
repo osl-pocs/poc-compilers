@@ -72,31 +72,47 @@ class FollowSet:
 
         """
         derivations = {}
+        subsets = {}
 
-        tokens_list = []
+        productions_list = {}
+        epsilons = []
 
-        for v in self.grammar.values():
+        for k, v in self.grammar.items():
+            productions_list[k] = []
+            subsets[k] = set()
             for vi in v:
-                tokens_list.append(vi.split(' '))
+                productions_list[k].append(vi.split(' '))
+                if '\\varepsilon' in vi:
+                    epsilons.append(k)
 
-        for non_terminals in self.grammar.keys():
-            derivations[non_terminals] = ['$']
-            for tokens in tokens_list:
-                if non_terminals not in tokens:
-                    continue
+        non_terminals = self.grammar.keys()
+        for non_terminal in non_terminals:
+            derivations[non_terminal] = ['$']
+            for k, productions_alternatives in productions_list.items():
+                for productions in productions_alternatives:
+                    if non_terminal not in productions:
+                        continue
 
-                i = tokens.index(non_terminals)
+                    i = productions.index(non_terminal)
 
-                try:
-                    token = tokens[i + 1]
-                except:
-                    continue
+                    if (i == len(productions) - 1) or (
+                        i == len(productions) - 2 and productions[-1] in epsilons
+                    ):
+                        # if the non terminal is at the right end of the production
+                        # it would be the subset of the same non terminal that
+                        # derives that production
+                        subsets[non_terminal] |= {k}
 
-                if self.check_is_terminal(token):
-                    derivations[non_terminals].extend([token])
-                    continue
+                    try:
+                        token = productions[i + 1]
+                    except:
+                        continue
 
-                derivations[non_terminals].extend(self.firstset.compute(token))
+                    if self.check_is_terminal(token):
+                        derivations[non_terminal].extend([token])
+                        continue
+
+                    derivations[non_terminal].extend(self.firstset.compute(token))
 
         result = derivations[input_string]
 
@@ -111,6 +127,12 @@ class FollowSet:
                 continue
 
             result.extend(derivations[token])
+
+            try:
+                for s in subsets[token]:
+                    result.extend(derivations[s])
+            except:
+                ...
 
         return set(result) - {'\\varepsilon'}
 
