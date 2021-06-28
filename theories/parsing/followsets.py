@@ -144,8 +144,14 @@ class FollowSet:
                 for productions in productions_alternatives:
                     try:
                         i = productions.index(input_string)
+                    except:
+                        continue
+
+                    try:
                         token = productions[i+1]
                     except:
+                        # end of the production
+                        result.extend(list(self.compute(k)))
                         continue
 
                     if self.check_is_terminal(token):
@@ -173,6 +179,7 @@ def test_follow_set():
         ('T', {'+', '$', ')'}),
         ('Y', {'+', '$', ')'}),
         ('(', {'(', 'int'}),
+        (')', {'+', '$', ')'}),
     ]:
         print(f'FollowSet("{s}") = {format_set(expected)}', end=" >>> ")
         result = followset.compute(s)
