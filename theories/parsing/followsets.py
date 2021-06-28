@@ -86,10 +86,13 @@ class FollowSet:
                     epsilons.append(k)
 
         non_terminals = self.grammar.keys()
-        for non_terminal in non_terminals:
-            derivations[non_terminal] = ['$']
-            for k, productions_alternatives in productions_list.items():
-                for productions in productions_alternatives:
+
+        for k, productions_alternatives in productions_list.items():
+            for productions in productions_alternatives:
+                for non_terminal in non_terminals:
+                    if non_terminal not in derivations:
+                        derivations[non_terminal] = ['$']
+
                     if non_terminal not in productions:
                         continue
 
@@ -114,25 +117,44 @@ class FollowSet:
 
                     derivations[non_terminal].extend(self.firstset.compute(token))
 
-        result = derivations[input_string]
+        if input_string in non_terminals:
+            result = derivations[input_string]
 
-        for tokens in self.grammar[input_string]:
-            try:
-                token = tokens.split(' ')[1]
-            except:
-                continue
+            for tokens in self.grammar[input_string]:
+                try:
+                    token = tokens.split(' ')[1]
+                except:
+                    continue
 
-            if self.check_is_terminal(token):
-                result.extend([token])
-                continue
+                if self.check_is_terminal(token):
+                    result.extend([token])
+                    continue
 
-            result.extend(derivations[token])
+                result.extend(derivations[token])
 
-            try:
-                for s in subsets[token]:
-                    result.extend(derivations[s])
-            except:
-                ...
+                try:
+                    for s in subsets[token]:
+                        result.extend(derivations[s])
+                except:
+                    ...
+        else:
+            result = []
+
+            for k, productions_alternatives in productions_list.items():
+                for productions in productions_alternatives:
+                    try:
+                        i = productions.index(input_string)
+                        token = productions[i+1]
+                    except:
+                        continue
+
+                    if self.check_is_terminal(token):
+                        result.extend([token])
+                        continue
+
+
+                    result.extend(self.firstset.compute(token))
+
 
         return set(result) - {'\\varepsilon'}
 
@@ -150,6 +172,7 @@ def test_follow_set():
         ('X', {'$', ')'}),
         ('T', {'+', '$', ')'}),
         ('Y', {'+', '$', ')'}),
+        ('(', {'(', 'int'}),
     ]:
         print(f'FollowSet("{s}") = {format_set(expected)}', end=" >>> ")
         result = followset.compute(s)
