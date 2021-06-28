@@ -158,6 +158,11 @@ class FollowSet:
                         result.extend([token])
                         continue
 
+                    if token in epsilons:
+                        result.extend(derivations[token])
+                        for s in subsets[token]:
+                            result.extend(derivations[s])
+
 
                     result.extend(self.firstset.compute(token))
 
@@ -180,6 +185,9 @@ def test_follow_set():
         ('Y', {'+', '$', ')'}),
         ('(', {'(', 'int'}),
         (')', {'+', '$', ')'}),
+        ('+', {'(', 'int'}),
+        ('*', {'(', 'int'}),
+        ('int', {'*', '+', '$', ')'}),
     ]:
         print(f'FollowSet("{s}") = {format_set(expected)}', end=" >>> ")
         result = followset.compute(s)
