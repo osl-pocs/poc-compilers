@@ -11,28 +11,8 @@ Intuition:
 """
 
 from firstsets import FirstSet
-
-
-def create_grammar(grammar: str):
-    result = {}
-    for line in grammar.split('\n'):
-        if not line or ":" not in line:
-            continue
-
-        lhs, rhs = line.split(":")
-        lhs = lhs.strip()
-        rhs = [v.strip() for v in rhs.split("|")]
-
-        result[lhs] = rhs
-
-    return result
-
-
-def format_set(token_set: set):
-    result = []
-    for v in token_set:
-        result.append(f'"{v}"')
-    return "{ " + ", ".join(result) + " }"
+from grammar import create_grammar
+from utilsets import format_set
 
 
 class FollowSet:
@@ -81,8 +61,8 @@ class FollowSet:
             productions_list[k] = []
             subsets[k] = set()
             for vi in v:
-                productions_list[k].append(vi.split(' '))
-                if '\\varepsilon' in vi:
+                productions_list[k].append(vi.split(" "))
+                if "\\varepsilon" in vi:
                     epsilons.append(k)
 
         non_terminals = self.grammar.keys()
@@ -91,7 +71,7 @@ class FollowSet:
             for productions in productions_alternatives:
                 for non_terminal in non_terminals:
                     if non_terminal not in derivations:
-                        derivations[non_terminal] = ['$']
+                        derivations[non_terminal] = ["$"]
 
                     if non_terminal not in productions:
                         continue
@@ -99,7 +79,8 @@ class FollowSet:
                     i = productions.index(non_terminal)
 
                     if (i == len(productions) - 1) or (
-                        i == len(productions) - 2 and productions[-1] in epsilons
+                        i == len(productions) - 2
+                        and productions[-1] in epsilons
                     ):
                         # if the non terminal is at the right end of the production
                         # it would be the subset of the same non terminal that
@@ -115,14 +96,16 @@ class FollowSet:
                         derivations[non_terminal].extend([token])
                         continue
 
-                    derivations[non_terminal].extend(self.firstset.compute(token))
+                    derivations[non_terminal].extend(
+                        self.firstset.compute(token)
+                    )
 
         if input_string in non_terminals:
             result = derivations[input_string]
 
             for tokens in self.grammar[input_string]:
                 try:
-                    token = tokens.split(' ')[1]
+                    token = tokens.split(" ")[1]
                 except:
                     continue
 
@@ -148,7 +131,7 @@ class FollowSet:
                         continue
 
                     try:
-                        token = productions[i+1]
+                        token = productions[i + 1]
                     except:
                         # end of the production
                         result.extend(list(self.compute(k)))
@@ -163,8 +146,7 @@ class FollowSet:
 
                     result.extend(self.firstset.compute(token))
 
-
-        return set(result) - {'\\varepsilon'}
+        return set(result) - {"\\varepsilon"}
 
 
 def test_follow_set():
@@ -176,15 +158,15 @@ def test_follow_set():
     """
     followset = FollowSet(grammar)
     for s, expected in [
-        ('E', {'$', ')'}),
-        ('X', {'$', ')'}),
-        ('T', {'+', '$', ')'}),
-        ('Y', {'+', '$', ')'}),
-        ('(', {'(', 'int'}),
-        (')', {'+', '$', ')'}),
-        ('+', {'(', 'int'}),
-        ('*', {'(', 'int'}),
-        ('int', {'*', '+', '$', ')'}),
+        ("E", {"$", ")"}),
+        ("X", {"$", ")"}),
+        ("T", {"+", "$", ")"}),
+        ("Y", {"+", "$", ")"}),
+        ("(", {"(", "int"}),
+        (")", {"+", "$", ")"}),
+        ("+", {"(", "int"}),
+        ("*", {"(", "int"}),
+        ("int", {"*", "+", "$", ")"}),
     ]:
         print(f'FollowSet("{s}") = {format_set(expected)}', end=" >>> ")
         result = followset.compute(s)
@@ -192,5 +174,5 @@ def test_follow_set():
         assert result == expected
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test_follow_set()

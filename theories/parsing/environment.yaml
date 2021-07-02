@@ -1,0 +1,8 @@
+name: poc-parsing
+channels:
+  - conda-forge
+dependencies:
+  - pandas
+  # dev
+  - mamba
+  - black

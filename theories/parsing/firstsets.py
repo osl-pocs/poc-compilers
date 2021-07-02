@@ -1,26 +1,8 @@
 """
 First(X) = {t | X -> * t \\alpha } U { \\varepsilon | X -> * \\varepsilon }
 """
-def create_grammar(grammar: str):
-    result = {}
-    for line in grammar.split('\n'):
-        if not line or ":" not in line:
-            continue
-
-        lhs, rhs = line.split(":")
-        lhs = lhs.strip()
-        rhs = [v.strip() for v in rhs.split("|")]
-
-        result[lhs] = rhs
-
-    return result
-
-
-def format_set(token_set: set):
-    result = []
-    for v in token_set:
-        result.append(f'"{v}"')
-    return "{ " + ", ".join(result) + " }"
+from grammar import create_grammar
+from utilsets import format_set
 
 
 class FirstSet:
@@ -47,7 +29,7 @@ class FirstSet:
 
         result = []
         for tokens in self.grammar[input_string]:
-            token = tokens.split(' ')[0]
+            token = tokens.split(" ")[0]
             # get just the first
             result.extend(self.compute(token))
         return set(result)
@@ -62,15 +44,15 @@ def test_first_set():
     """
     firstset = FirstSet(grammar)
     for s, expected in [
-        ('+', {'+'}),
-        ('*', {'*'}),
-        ('int', {'int'}),
-        ('(', {'('}),
-        (')', {')'}),
-        ('T', {'(', 'int'}),
-        ('E', {'(', 'int'}),
-        ('X', {'+', '\\varepsilon'}),
-        ('Y', {'*', '\\varepsilon'}),
+        ("+", {"+"}),
+        ("*", {"*"}),
+        ("int", {"int"}),
+        ("(", {"("}),
+        (")", {")"}),
+        ("T", {"(", "int"}),
+        ("E", {"(", "int"}),
+        ("X", {"+", "\\varepsilon"}),
+        ("Y", {"*", "\\varepsilon"}),
     ]:
         print(f'FirstSet("{s}") = {format_set(expected)}', end=" >>> ")
         result = firstset.compute(s)
@@ -78,5 +60,5 @@ def test_first_set():
         assert result == expected
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test_first_set()
