@@ -1,0 +1,9 @@
+name: pocpyllvm
+channels:
+  - conda-forge
+  - free
+dependencies:
+  - python
+  - llvm
+  - llvmpy
+  - numpy

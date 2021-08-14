@@ -11,17 +11,16 @@ Intuition:
 """
 
 from firstsets import FirstSet
-from grammar import create_grammar
 from utilsets import format_set
 
 
 class FollowSet:
     def __init__(self, grammar):
-        self.grammar: dict = create_grammar(grammar)
         self.firstset = FirstSet(grammar)
+        self.grammar = self.firstset.grammar
 
     def check_is_terminal(self, input_string: str):
-        return input_string not in self.grammar.keys()
+        return input_string not in self.grammar.productions.keys()
 
     def compute(self, input_string: str):
         """
@@ -57,7 +56,7 @@ class FollowSet:
         productions_list = {}
         epsilons = []
 
-        for k, v in self.grammar.items():
+        for k, v in self.grammar.productions.items():
             productions_list[k] = []
             subsets[k] = set()
             for vi in v:
@@ -65,7 +64,7 @@ class FollowSet:
                 if "\\varepsilon" in vi:
                     epsilons.append(k)
 
-        non_terminals = self.grammar.keys()
+        non_terminals = self.grammar.productions.keys()
 
         for k, productions_alternatives in productions_list.items():
             for productions in productions_alternatives:
@@ -103,7 +102,7 @@ class FollowSet:
         if input_string in non_terminals:
             result = derivations[input_string]
 
-            for tokens in self.grammar[input_string]:
+            for tokens in self.grammar.productions[input_string]:
                 try:
                     token = tokens.split(" ")[1]
                 except:
@@ -151,10 +150,10 @@ class FollowSet:
 
 def test_follow_set():
     grammar = """
-    E: T X
-    T: ( E ) | int Y
-    X: + E | \\varepsilon
-    Y: * T | \\varepsilon
+    E -> T X
+    T -> ( E ) | int Y
+    X -> + E | \\varepsilon
+    Y -> * T | \\varepsilon
     """
     followset = FollowSet(grammar)
     for s, expected in [
@@ -174,5 +173,24 @@ def test_follow_set():
         assert result == expected
 
 
+def test_follow_set1():
+    """
+    Expected:
+
+    - Follow(S) = {$, b}
+    - Follow(T) = {a, b, c}
+    """
+    grammar = """
+    S -> a T U b | \\varepsilon
+    T -> c U c | b U b | a U a
+    U -> S b | c c
+    """
+    followset = FollowSet(grammar)
+    for non_terminal in followset.grammar.productions.keys():
+        result = followset.compute(non_terminal)
+        print(f"Follow({non_terminal}) = ", result)
+
+
 if __name__ == "__main__":
-    test_follow_set()
+    # test_follow_set()
+    test_follow_set1()

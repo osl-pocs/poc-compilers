@@ -2,22 +2,6 @@ version: '3.3'
 
 services:
 
-  bilex:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    hostname: bilex
-    privileged: true
-    environment:
-      - DISPLAY=${DISPLAY}
-    tmpfs:
-      - /run
-      - /run/lock
-      - /tmp
-    volumes:
-      - .:/home/developer
-      - /tmp/.X11-unix:/tmp/.X11-unix
-
   pocllvm:
     build:
       context: .

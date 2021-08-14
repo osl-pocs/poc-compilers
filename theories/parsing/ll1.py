@@ -20,15 +20,14 @@ import pandas as pd
 
 from firstsets import FirstSet
 from followsets import FollowSet
-from grammar import create_grammar
 from utilsets import format_set
 
 
 class LL1:
     def __init__(self, grammar):
-        self.grammar: dict = create_grammar(grammar)
         self.firstset = FirstSet(grammar)
         self.followset = FollowSet(grammar)
+        self.grammar: dict = self.firstset.grammar
         self.terminals = None
         self.non_terminals = None
 
@@ -39,7 +38,7 @@ class LL1:
         non_terminals = self._get_non_terminals()
         terminals = []
 
-        for productions in self.grammar.values():
+        for productions in self.grammar.productions.values():
             for alternatives in productions:
                 for p in alternatives.split(" "):
                     if p == "\\varepsilon":
@@ -51,7 +50,7 @@ class LL1:
 
     def _get_non_terminals(self):
         if not self.non_terminals:
-            self.non_terminals = list(self.grammar.keys())
+            self.non_terminals = list(self.grammar.productions.keys())
         return self.non_terminals
 
     def compute(self):
@@ -64,7 +63,7 @@ class LL1:
 
         # For each production "A -> \\alpha" in G do:
 
-        for non_terminal, productions in self.grammar.items():
+        for non_terminal, productions in self.grammar.productions.items():
             non_terminal_followset = self.followset.compute(non_terminal)
 
             for alternatives in productions:
@@ -93,10 +92,10 @@ class LL1:
 
 def test_ll1():
     grammar = """
-    E: T X
-    T: ( E ) | int Y
-    X: + E | \\varepsilon
-    Y: * T | \\varepsilon
+    E -> T X
+    T -> ( E ) | int Y
+    X -> + E | \\varepsilon
+    Y -> * T | \\varepsilon
     """
 
     expected = pd.DataFrame(
@@ -141,5 +140,18 @@ def test_ll1():
     print(parsing_table)
 
 
+def test_ll1_2():
+    grammar = """
+    S -> b A b | b B a
+    A -> a S | C B
+    B -> b | B c
+    C -> c | c C
+    """
+    ll1 = LL1(grammar)
+    parsing_table = ll1.compute()
+    print(parsing_table)
+
+
 if __name__ == "__main__":
-    test_ll1()
+    # test_ll1()
+    test_ll1_2()
