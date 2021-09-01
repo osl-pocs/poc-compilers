@@ -27,3 +27,10 @@ print(mod)
 
 
 print(mod.to_native_assembly())
+
+tm = le.TargetMachine.new(features='', cm=le.CM_JITDEFAULT)
+eb = le.EngineBuilder.new(mod)
+jit = eb.create(tm)
+
+ret = jit.run_function(fn, [])
+print(ret.as_int())

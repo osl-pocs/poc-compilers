@@ -1,0 +1,19 @@
+version: '3.3'
+
+services:
+
+  mips:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    hostname: mips
+    privileged: true
+    environment:
+      - DISPLAY=${DISPLAY}
+    tmpfs:
+      - /run
+      - /run/lock
+      - /tmp
+    volumes:
+      - .:/home/developer
+      - /tmp/.X11-unix:/tmp/.X11-unix

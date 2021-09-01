@@ -1,0 +1,52 @@
+# Code generation
+
+- AST
+  - code generation can be done by recursive traversal of the AST
+- Run-time
+- Memory usage
+  - Code area
+    - contains object code
+    - for many languages, fixed size and read only (not always)
+  - static area
+    - contains data with fixed address (e.g. global data)
+    - fixed size, may be readable or writable
+  - stack
+    - contains an activation record for each currently activate procedure
+    - each activation record usually fixed size
+    - contains locals
+    - can start in at the lowest address level and increase towards the highest address level
+  - heap
+    - contains all other data
+    - can start in at the highest address level and decrease towards in the lowest address level
+- Activation
+  - lifetime -> dynamic concept (run-time)
+  - scope -> static concept (compile-time)
+  - Each language can design activation record using different approach
+  - activation record and code generation must to be designed together
+- Global variables
+  - global variables cannot be stored in an activation record
+  - assigned a fixed address once
+  - static allocation
+- Alignment
+  - most machines are 32 or 64 bit, where 8 bits in a byte and 4 bytes (in 32 bits arch) or 8 bytes (in 64 bits arch) in a word
+  - machines are either byte or word addressable
+  - word aligned, if it begins at the word boundary
+  - most machines have some alignment restriction or performance penalties for poor alignment (maybe 10x slower)
+- Stack Machine
+  - storages in stack
+  - location of the operands/results is not explicitly stated, always the top of the stack
+  - smaller programes than register machine
+- Register Machine
+  - create a register of a value and operate over the registered values
+  - faster than stack machine
+- n-register stack machine
+  - keep the top n locations of the pure stack machine's stack in registers
+  - 1-register stack machine
+    - the register is called accumulator, used for store the results of operations
+- MIPS
+  - RISC: Reduced Instruction Set Computer
+  - 32 general purpose register (32 bits each one)
+  - Simulator: SPIM
+  - References:
+    - https://www2.engr.arizona.edu/~ece369/Resources/spim/QtSPIM_examples.pdf
+
